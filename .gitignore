@@ -1,0 +1,11 @@
+.env
+.env.local
+*.env
+config.py
+secrets.*
+*.key
+*.pem
+__pycache__/
+*.pyc
+venv/
+.venv/
