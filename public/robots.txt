@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Private / non-public services on this zone.
+# Courtesy only — these are also behind Cloudflare
+# Access. Bad bots ignore robots.txt entirely.
+Disallow: /cdn-cgi/
+
+Sitemap: https://cursedshrine.com/sitemap.xml
+Sitemap: https://cursedshrine.com/blog/sitemap-index.xml
