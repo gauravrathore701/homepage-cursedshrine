@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Auth API — docs · Cursed Shrine</title>
+<meta name="description" content="A small Rust service that owns user accounts and watch progress: bcrypt-hashed passwords, 24-hour JWTs, and a MongoDB store. Public traffic reaches it through the Mecca API.">
+<link rel="canonical" href="https://cursedshrine.com/projects/user-auth-api/">
+<link rel="icon" type="image/svg+xml" href="/favicon-mark.svg">
+<link rel="stylesheet" href="/docs.css?v=20260913">
+</head>
+<body>
+  <header>
+    <nav class="column">
+      <a href="/" class="wordmark">Cursed Shrine</a>
+      <div class="nav-links">
+        <a href="https://gaurav.cursedshrine.com">Portfolio</a>
+        <a href="/blog/">Blog</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="column">
+    <div class="crumbs"><a href="/">Home</a> &rsaquo; <a href="/#projects">Projects</a> &rsaquo; User Auth API</div>
+    <section class="doc-hero">
+      <span class="kind">API</span>
+      <h1>User Auth API</h1>
+      <p>A small Rust service that owns user accounts and watch progress: bcrypt-hashed passwords, 24-hour JWTs, and a MongoDB store. Public traffic reaches it through the Mecca API.</p>
+      <div class="chips"><span class="chip">Rust 2024</span><span class="chip">axum 0.7</span><span class="chip">Tokio</span><span class="chip">MongoDB</span><span class="chip">bcrypt</span><span class="chip">jsonwebtoken</span></div>
+      <div class="actions"><a class="button" href="https://github.com/gauravrathore701/user-authentication-system" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> View on GitHub</a><a class="button ghost" href="/projects/mecca-api/">Called via Mecca API →</a></div>
+    </section>
+
+    <article class="doc">
+
+<h2>Overview</h2>
+<p>This service is the owner of two collections: <strong>users</strong> and <strong>watch progress</strong>.
+It is not exposed to the internet directly — the <a href="/projects/mecca-api/">Mecca API</a> gateway forwards
+<code>/api/auth/*</code> and <code>/api/progress</code> to it.</p>
+<div class="table-wrap"><table><thead><tr><th>Gateway route</th><th>Service route</th></tr></thead><tbody><tr><td><code>POST /api/auth/register</code></td><td><code>POST /users/register</code></td></tr><tr><td><code>POST /api/auth/login</code></td><td><code>POST /users/login</code></td></tr><tr><td><code>POST|GET /api/progress</code></td><td><code>POST|GET /progress</code></td></tr></tbody></table></div>
+<h2>Endpoints</h2>
+<h3>Users</h3>
+<div class="endpoint"><div class="sig"><span class="method post">POST</span><span class="path">/users/register</span></div>
+<p>Create a user. The password is hashed with bcrypt before it is stored.</p>
+<div class="label-sm">Request</div><pre><code>{
+  &quot;username&quot;: &quot;gaurav&quot;,
+  &quot;email&quot;: &quot;you@example.com&quot;,
+  &quot;password&quot;: &quot;••••••••&quot;
+}</code></pre>
+<div class="label-sm">Response</div><pre><code>201 Created
+{ &quot;message&quot;: &quot;user created&quot;, &quot;id&quot;: &quot;...&quot; }</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Status</th><th>Body</th></tr></thead><tbody><tr><td><code>400</code></td><td><code>{"error": "username required"}</code> (or email / password)</td></tr><tr><td><code>409</code></td><td><code>{"error": "username already exists"}</code></td></tr></tbody></table></div></div><div class="endpoint"><div class="sig"><span class="method post">POST</span><span class="path">/users/login</span></div>
+<p>Verify credentials and issue a JWT. The token's <code>sub</code> is the username and it expires after 24 hours.</p>
+<div class="label-sm">Request</div><pre><code>{
+  &quot;username&quot;: &quot;gaurav&quot;,
+  &quot;password&quot;: &quot;••••••••&quot;
+}</code></pre>
+<div class="label-sm">Response</div><pre><code>200 OK
+{ &quot;token&quot;: &quot;eyJhbGciOi...&quot; }</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Status</th><th>Body</th></tr></thead><tbody><tr><td><code>401</code></td><td><code>{"error": "invalid credentials"}</code></td></tr></tbody></table></div></div>
+<h3>Watch progress</h3>
+<p>Every progress route needs <code>Authorization: Bearer &lt;token&gt;</code>; the user comes from the token, never from the body.</p>
+<div class="endpoint"><div class="sig"><span class="method post">POST</span><span class="path">/progress</span><span class="auth">Bearer token</span></div>
+<p>Upsert the position for one episode. If <code>finished</code> is sent it wins; otherwise the episode counts as finished once the position is close to the end.</p>
+<div class="label-sm">Request</div><pre><code>{
+  &quot;show&quot;: &quot;One Piece&quot;,
+  &quot;path&quot;: &quot;Episode 01.mkv&quot;,
+  &quot;position&quot;: 612.4,
+  &quot;duration&quot;: 1420.0,
+  &quot;finished&quot;: false
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Status</th><th>Body</th></tr></thead><tbody><tr><td><code>400</code></td><td><code>{"error": "show and path required"}</code></td></tr><tr><td><code>401</code></td><td><code>{"error": "missing bearer token"}</code> / <code>invalid or expired token</code></td></tr></tbody></table></div></div><div class="endpoint"><div class="sig"><span class="method get">GET</span><span class="path">/progress</span><span class="auth">Bearer token</span></div>
+<p>Latest watched episode per show.</p>
+</div><div class="endpoint"><div class="sig"><span class="method get">GET</span><span class="path">/progress?show={show}</span><span class="auth">Bearer token</span></div>
+<p>All episodes watched in one show, newest first.</p>
+</div>
+<h2>Running it</h2>
+<pre><code>cargo build --release
+PORT=... MONGODB_URI=... JWT_SECRET=... \
+  ./target/release/user_auth_api</code></pre>
+<p><code>JWT_SECRET</code> is required — the service refuses to start without it. CORS allows any origin.</p>
+
+    </article>
+  </main>
+
+  <footer>
+    <div class="column">
+      <span>&copy; <span id="year">2026</span> Cursed Shrine &middot; built on a Raspberry Pi</span>
+      <span class="links">
+        <a href="/">Home</a>
+        <a href="https://gaurav.cursedshrine.com">Portfolio</a>
+        <a href="/blog/">Blog</a>
+      </span>
+      <span class="credit">developed and managed by <a href="https://gaurav.cursedshrine.com">Gaurav Rathore</a></span>
+      <span class="assist">With the help of Claudy Rex (AI Assistant)</span>
+    </div>
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script src="/doodles.js?v=20260913c" defer></script>
+</body>
+</html>

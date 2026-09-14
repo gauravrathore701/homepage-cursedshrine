@@ -155,9 +155,6 @@
     pointer-events: none;
   }
   a.card .ribbon.personal { background: var(--color-ink); }
-  a.card .ribbon.api { background: #2f6f8f; }
-  /* odd card count: last card sits centred at single-card width */
-  .grid > a.card:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 0.5rem); }
   a.card .url { margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-muted); overflow-wrap: anywhere; }
 
   footer { margin-top: 4rem; border-top: 1px solid var(--color-line); }
@@ -190,7 +187,6 @@
     .hero h1 { font-size: 1.6rem; }
     .nav-links { gap: 1rem; }
     .grid { grid-template-columns: minmax(0, 1fr); }
-    .grid > a.card:last-child:nth-child(odd) { width: 100%; }
   }
 </style>
 </head>
@@ -216,7 +212,7 @@
       </div>
     </section>
 
-    <div class="section-head" id="projects">
+    <div class="section-head">
       <h2>Projects</h2>
     </div>
     <div class="grid">
@@ -247,27 +243,6 @@
         <span class="label">Snakes &amp; Ladders</span>
         <div class="blurb">The board game, rolled in the browser.</div>
         <div class="url">snakeladder.cursedshrine.com</div>
-      </a>
-      <a class="card" href="/projects/mecca-api/">
-        <span class="ribbon api">API</span>
-        <span class="icon">🛰️</span>
-        <span class="label">Mecca API</span>
-        <div class="blurb">Spring Boot gateway in front of the Pi's backend services.</div>
-        <div class="url">api.cursedshrine.com &middot; docs</div>
-      </a>
-      <a class="card" href="/projects/user-auth-api/">
-        <span class="ribbon api">API</span>
-        <span class="icon">🔐</span>
-        <span class="label">User Auth API</span>
-        <div class="blurb">Rust service for accounts, JWT login and watch progress.</div>
-        <div class="url">docs &middot; GitHub</div>
-      </a>
-      <a class="card" href="/projects/mail-service/">
-        <span class="ribbon api">API</span>
-        <span class="icon">✉️</span>
-        <span class="label">Mail Service</span>
-        <div class="blurb">Rust backend that captures email subscribers.</div>
-        <div class="url">docs &middot; GitHub</div>
       </a>
     </div>
   </main>

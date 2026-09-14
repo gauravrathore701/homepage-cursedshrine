@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mecca API — docs · Cursed Shrine</title>
+<meta name="description" content="A Spring Boot gateway that sits in front of the Pi&#x27;s backend services. Every request passes one strict pipeline — Controller → Service → Manager → Adapter — so callers never talk to a downstream service directly.">
+<link rel="canonical" href="https://cursedshrine.com/projects/mecca-api/">
+<link rel="icon" type="image/svg+xml" href="/favicon-mark.svg">
+<link rel="stylesheet" href="/docs.css?v=20260913">
+</head>
+<body>
+  <header>
+    <nav class="column">
+      <a href="/" class="wordmark">Cursed Shrine</a>
+      <div class="nav-links">
+        <a href="https://gaurav.cursedshrine.com">Portfolio</a>
+        <a href="/blog/">Blog</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="column">
+    <div class="crumbs"><a href="/">Home</a> &rsaquo; <a href="/#projects">Projects</a> &rsaquo; Mecca API</div>
+    <section class="doc-hero">
+      <span class="kind">API</span>
+      <h1>Mecca API</h1>
+      <p>A Spring Boot gateway that sits in front of the Pi's backend services. Every request passes one strict pipeline — Controller → Service → Manager → Adapter — so callers never talk to a downstream service directly.</p>
+      <div class="chips"><span class="chip">Java 21</span><span class="chip">Spring Boot 3.3</span><span class="chip">Spring WebFlux (WebClient)</span><span class="chip">Lombok</span><span class="chip">Maven</span></div>
+      <div class="actions"><span class="button ghost" aria-disabled="true" style="cursor:default"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> Private repository</span></div>
+    </section>
+
+    <article class="doc">
+
+<h2>Overview</h2>
+<p>Mecca API is a pure connector: it owns no database. It validates what the caller sends, translates it
+into an internal shape, and forwards it to the service that owns the data — the
+<a href="/projects/user-auth-api/">User Auth API</a> for accounts and watch progress, and the
+<a href="/projects/mail-service/">Mail Service</a> for notifications.</p>
+<p><strong>Base URL:</strong> <code>https://api.cursedshrine.com/api</code> — every route below is relative to it.</p>
+
+<h2>Architecture</h2>
+<pre><code>caller
+  │  *Dto      (request contract)
+controller
+  │
+service      DTO → Entity
+  │  *Entity   (internal contract)
+manager      orchestration
+  │
+adapter      Entity → Proxy, HTTP call
+  │  *Proxy    (downstream contract)
+downstream service (Rust)</code></pre>
+<p>Each domain (<code>auth</code>, <code>progress</code>, <code>notification</code>) is a self-contained package with its own
+controller, dto, service, entity, manager, adapter and proxy classes, plus a named <code>WebClient</code> for its downstream.</p>
+
+<h2>Endpoints</h2>
+<h3>Auth</h3>
+<div class="endpoint"><div class="sig"><span class="method post">POST</span><span class="path">/auth/register</span></div>
+<p>Create an account. <code>username</code>, <code>email</code> and <code>password</code> are required; any extra JSON fields are captured and forwarded untouched.</p>
+<div class="label-sm">Request</div><pre><code>{
+  &quot;username&quot;: &quot;gaurav&quot;,
+  &quot;email&quot;: &quot;you@example.com&quot;,
+  &quot;password&quot;: &quot;••••••••&quot;
+}</code></pre>
+<div class="label-sm">Response</div><pre><code>{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;...&quot;,
+  &quot;data&quot;: { &quot;message&quot;: &quot;user created&quot;, &quot;id&quot;: &quot;...&quot; }
+}</code></pre>
+</div><div class="endpoint"><div class="sig"><span class="method post">POST</span><span class="path">/auth/login</span></div>
+<p>Exchange credentials for a JWT, valid for 24 hours.</p>
+<div class="label-sm">Request</div><pre><code>{
+  &quot;username&quot;: &quot;gaurav&quot;,
+  &quot;password&quot;: &quot;••••••••&quot;
+}</code></pre>
+<div class="label-sm">Response</div><pre><code>{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;...&quot;,
+  &quot;data&quot;: { &quot;token&quot;: &quot;eyJhbGciOi...&quot; }
+}</code></pre>
+</div>
+<h3>Watch progress</h3>
+<p>Cross-device resume for <a href="https://shows.cursedshrine.com" rel="nofollow">Shows</a>. The token is forwarded as-is;
+the User Auth API verifies it. A missing <code>Authorization</code> header is rejected with <code>401</code>.</p>
+<div class="endpoint"><div class="sig"><span class="method post">POST</span><span class="path">/progress</span><span class="auth">Bearer token</span></div>
+<p>Save or update the position in an episode.</p>
+<div class="label-sm">Request</div><pre><code>{
+  &quot;show&quot;: &quot;One Piece&quot;,
+  &quot;path&quot;: &quot;Episode 01.mkv&quot;,
+  &quot;position&quot;: 612.4,
+  &quot;duration&quot;: 1420.0,
+  &quot;finished&quot;: false
+}</code></pre>
+</div><div class="endpoint"><div class="sig"><span class="method get">GET</span><span class="path">/progress</span><span class="auth">Bearer token</span></div>
+<p>Latest episode per show for the signed-in user.</p>
+</div><div class="endpoint"><div class="sig"><span class="method get">GET</span><span class="path">/progress?show={show}</span><span class="auth">Bearer token</span></div>
+<p>Every episode watched in one show, newest first. <code>show</code> is the watch key, e.g. <code>One Piece</code> or <code>GOT/Season 03</code>.</p>
+</div>
+<h3>Notification</h3>
+<div class="endpoint"><div class="sig"><span class="method post">POST</span><span class="path">/notification/subscribe</span></div>
+<p>Add an email subscriber through the Mail Service. <code>name</code> must be non-empty and <code>email</code> must look like an address; otherwise <code>400</code>.</p>
+<div class="label-sm">Request</div><pre><code>{
+  &quot;name&quot;: &quot;Ada&quot;,
+  &quot;email&quot;: &quot;ada@example.com&quot;
+}</code></pre>
+<div class="label-sm">Response</div><pre><code>201 Created
+{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;subscriber saved&quot;
+}</code></pre>
+</div>
+<h2>Errors</h2>
+<p>All failures share one JSON shape, produced by a global exception handler. Downstream HTTP errors keep their status code and the
+downstream's short reason; internal hosts and paths are never included.</p>
+<pre><code>{
+  "success": false,
+  "status": 400,
+  "message": "..."
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Status</th><th>When</th></tr></thead><tbody><tr><td><code>400</code></td><td>Missing or invalid fields</td></tr><tr><td><code>401</code></td><td>Missing bearer token, invalid credentials, or expired token</td></tr><tr><td><code>404</code> / <code>405</code></td><td>Unknown route / wrong method</td></tr><tr><td><code>409</code></td><td>Username already exists</td></tr><tr><td><code>502</code></td><td>A downstream service is unreachable</td></tr><tr><td><code>500</code></td><td>Unexpected gateway error</td></tr></tbody></table></div>
+<h2>Source</h2>
+<p>The Mecca API repository is private. The two services it fronts are open source —
+see <a href="/projects/user-auth-api/">User Auth API</a> and <a href="/projects/mail-service/">Mail Service</a>.</p>
+
+    </article>
+  </main>
+
+  <footer>
+    <div class="column">
+      <span>&copy; <span id="year">2026</span> Cursed Shrine &middot; built on a Raspberry Pi</span>
+      <span class="links">
+        <a href="/">Home</a>
+        <a href="https://gaurav.cursedshrine.com">Portfolio</a>
+        <a href="/blog/">Blog</a>
+      </span>
+      <span class="credit">developed and managed by <a href="https://gaurav.cursedshrine.com">Gaurav Rathore</a></span>
+      <span class="assist">With the help of Claudy Rex (AI Assistant)</span>
+    </div>
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script src="/doodles.js?v=20260913c" defer></script>
+</body>
+</html>

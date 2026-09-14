@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursed Shrine</title>
+<meta name="description" content="Gaurav's corner of the internet — portfolio, blog and small projects, all running on a Raspberry Pi.">
+<link rel="canonical" href="https://cursedshrine.com/">
+<link rel="icon" type="image/svg+xml" href="/favicon-mark.svg">
+<link rel="apple-touch-icon" href="/logo-icon.svg">
+<link rel="alternate" type="application/rss+xml" title="Cursed Shrine" href="/blog/rss.xml">
+<style>
+  /* Mirrors the blog's design (bloging-app/src/styles/global.css):
+     old-novel paper palette, matte ink, hairlines, 52rem column.
+     Keep these tokens in sync if the blog's palette changes. */
+  :root {
+    --color-bg: #e8dfc9;
+    --color-bg-sec: #ddd2b7;
+    --color-ink: #2b2723;
+    --color-ink-dim: #3f3830;
+    --color-accent: #6b4a2f;
+    --color-accent-dim: #8a6a4b;
+    --color-muted: #6f6555;
+    --color-line: #cbbd9e;
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Same pure-CSS paper texture as the blog: fold creases, fibre grain, vignette. */
+  body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    background-image:
+      linear-gradient(90deg,
+        transparent 0 22%,
+        rgba(90, 70, 40, 0.035) 22.2%, transparent 22.5%,
+        transparent 0 57%,
+        rgba(90, 70, 40, 0.03) 57.2%, transparent 57.5%,
+        transparent 0 81%,
+        rgba(90, 70, 40, 0.035) 81.2%, transparent 81.5%),
+      linear-gradient(0deg,
+        transparent 0 63%,
+        rgba(90, 70, 40, 0.025) 63.15%, transparent 63.4%),
+      repeating-linear-gradient(103deg,
+        rgba(120, 95, 60, 0.028) 0 1px, transparent 1px 7px),
+      repeating-linear-gradient(11deg,
+        rgba(120, 95, 60, 0.022) 0 1px, transparent 1px 11px),
+      radial-gradient(120% 90% at 50% 40%,
+        transparent 55%, rgba(80, 62, 35, 0.06) 100%);
+    background-attachment: fixed;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: var(--color-accent); }
+
+  .column { width: 100%; max-width: 52rem; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
+
+  /* Header — wordmark left, links right, hairline below. */
+  header { border-bottom: 1px solid var(--color-line); }
+  header nav { display: flex; align-items: center; gap: 1.25rem; padding-top: 1rem; padding-bottom: 1rem; }
+  .wordmark { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.025em; color: var(--color-ink); }
+  .nav-links { margin-left: auto; display: flex; gap: 1.25rem; font-size: 0.875rem; color: var(--color-muted); }
+
+  main { position: relative; flex: 1; padding-top: 2rem; padding-bottom: 2rem; }
+
+  .meta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem; color: var(--color-muted);
+    overflow-wrap: anywhere;
+  }
+  .tag {
+    border-radius: 0.25rem; background: var(--color-bg-sec);
+    padding: 0.125rem 0.375rem; color: var(--color-ink);
+  }
+
+  /* Portfolio — the main attraction: an inset sheet, like the blog's code blocks. */
+  .hero {
+    background-color: var(--color-bg-sec);
+    border: 1px solid var(--color-line);
+    border-radius: 0.75rem;
+    padding: 2rem 1.75rem;
+  }
+  .hero h1 { font-size: 2rem; line-height: 1.2; font-weight: 700; letter-spacing: -0.025em; margin-top: 0.25rem; }
+  .hero p { margin-top: 0.75rem; max-width: 36rem; font-size: 1.05rem; line-height: 1.65; color: var(--color-ink-dim); }
+  .hero .tag { background: var(--color-bg); border: 1px solid var(--color-line); }
+  .hero .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-top: 1.5rem; }
+  .button {
+    display: inline-block;
+    border: 1px solid var(--color-accent);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600; font-size: 0.95rem;
+    color: var(--color-bg);
+    background: var(--color-accent);
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .button:hover { background: transparent; color: var(--color-accent); }
+
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    margin-top: 3rem;
+  }
+  .section-head h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
+  .section-head a { font-size: 0.875rem; color: var(--color-accent); }
+  .section-head a:hover { text-decoration: underline; }
+
+  /* Rows — same shape as the blog's PostCard. */
+  .row { border-bottom: 1px solid var(--color-line); padding: 1.5rem 0; }
+  .row h3 { font-size: 1.25rem; line-height: 1.4; font-weight: 600; }
+  .row p { margin-top: 0.25rem; color: var(--color-ink-dim); }
+
+  footer { margin-top: 4rem; border-top: 1px solid var(--color-line); }
+  footer .column {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem;
+    padding-top: 1.5rem; padding-bottom: 1.5rem;
+    font-size: 0.875rem; color: var(--color-muted);
+  }
+  footer .links { display: flex; gap: 1.25rem; }
+
+  /* Marginalia doodles, same paths as the blog's sketches.js. Only where there is margin. */
+  .margin-sketches { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .margin-sketch {
+    position: absolute; top: var(--top);
+    width: var(--size); height: var(--size);
+    transform: rotate(var(--rot));
+    color: var(--color-ink); opacity: 0.14;
+    display: none;
+  }
+  .margin-sketch.left  { left:  calc(50% - 26rem - var(--size) - 2.5rem); }
+  .margin-sketch.right { right: calc(50% - 26rem - var(--size) - 2.5rem); }
+  @media (min-width: 1280px) { .margin-sketch { display: block; } }
+
+  @media (max-width: 640px) {
+    .hero { padding: 1.5rem 1.25rem; }
+    .hero h1 { font-size: 1.6rem; }
+    .nav-links { gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="margin-sketches" aria-hidden="true">
+    <svg class="margin-sketch left" style="--top:18vh; --rot:-9deg; --size:104px;" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 54c6-3 10-7 14-12"/><path d="M26 42c8-11 16-20 26-28-1 12-5 22-11 30-4 5-9 8-15 10"/><path d="M30 40c5-6 10-11 16-16"/><path d="M10 56l6-2"/>
+    </svg>
+    <svg class="margin-sketch right" style="--top:44vh; --rot:7deg; --size:92px;" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M26 24h12l3 22H23z"/><path d="M28 18c0-3 2-5 4-5s4 2 4 5"/><path d="M23 46h18"/><path d="M32 28v12"/><path d="M28 46l-2 6M36 46l2 6"/>
+    </svg>
+    <svg class="margin-sketch left" style="--top:70vh; --rot:12deg; --size:88px;" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M40 14c-11 3-18 12-17 22 1 11 11 18 22 16-9-3-15-11-15-20 0-8 4-15 10-18z"/><path d="M48 22l2-4 2 4 4 2-4 2-2 4-2-4-4-2z"/>
+    </svg>
+  </div>
+
+  <header>
+    <nav class="column">
+      <a href="/" class="wordmark">Cursed Shrine</a>
+      <div class="nav-links">
+        <a href="https://gaurav.cursedshrine.com">Portfolio</a>
+        <a href="/blog/">Blog</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="column">
+    <section class="hero">
+      <div class="meta"><span class="tag">PORTFOLIO</span><span>gaurav.cursedshrine.com</span></div>
+      <h1>Gaurav &mdash; developer &amp; designer</h1>
+      <p>Full-stack developer crafting modern web experiences with React, Next.js and TypeScript. Work, projects and how to reach me.</p>
+      <div class="actions">
+        <a class="button" href="https://gaurav.cursedshrine.com">Visit the portfolio &rarr;</a>
+      </div>
+    </section>
+
+    <div class="section-head">
+      <h2>From the blog</h2>
+      <a href="/blog/">All posts &rarr;</a>
+    </div>
+    <div id="posts">
+      <article class="row">
+        <div class="meta"><span>cursedshrine.com/blog</span></div>
+        <h3><a href="/blog/">Read the blog</a></h3>
+        <p>Tech, homelab teardowns, finance and books. Written from a Raspberry Pi.</p>
+      </article>
+    </div>
+
+    <div class="section-head">
+      <h2>Projects</h2>
+    </div>
+    <article class="row">
+      <div class="meta"><span>Media</span><span>shows.cursedshrine.com</span></div>
+      <h3><a href="https://shows.cursedshrine.com" rel="nofollow">Shows</a></h3>
+      <p>A personal media library that remembers where you stopped, on any device.</p>
+    </article>
+    <article class="row">
+      <div class="meta"><span>Game</span><span>tictactoe.cursedshrine.com</span></div>
+      <h3><a href="https://tictactoe.cursedshrine.com">Tic Tac Toe</a></h3>
+      <p>The classic grid game, built in React.</p>
+    </article>
+    <article class="row">
+      <div class="meta"><span>Game</span><span>minecraft.cursedshrine.com</span></div>
+      <h3><a href="https://minecraft.cursedshrine.com">CursedCraft</a></h3>
+      <p>A voxel world that runs in the browser. Dig, build, repeat.</p>
+    </article>
+    <article class="row">
+      <div class="meta"><span>Game</span><span>snakeladder.cursedshrine.com</span></div>
+      <h3><a href="https://snakeladder.cursedshrine.com">Snakes &amp; Ladders</a></h3>
+      <p>The board game, rolled in the browser.</p>
+    </article>
+  </main>
+
+  <footer>
+    <div class="column">
+      <span>&copy; <span id="year">2026</span> Cursed Shrine &middot; built on a Raspberry Pi</span>
+      <span class="links">
+        <a href="https://gaurav.cursedshrine.com">Portfolio</a>
+        <a href="/blog/">Blog</a>
+        <a href="/blog/rss.xml">RSS</a>
+      </span>
+    </div>
+  </footer>
+
+  <script>
+    // Latest three posts from the blog's own RSS (same origin). If the fetch
+    // fails, the static "Read the blog" row above stays in place.
+    (function () {
+      document.getElementById('year').textContent = new Date().getFullYear();
+      fetch('/blog/rss.xml')
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(function (xml) {
+          var items = new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('item');
+          if (!items.length) return;
+          var box = document.getElementById('posts');
+          box.textContent = '';
+          Array.prototype.slice.call(items, 0, 3).forEach(function (item) {
+            var get = function (tag) { var n = item.querySelector(tag); return n ? n.textContent : ''; };
+            var link = get('link');
+            try { link = new URL(link).pathname; } catch (e) {}
+            var d = new Date(get('pubDate'));
+            var cat = get('category');
+
+            var row = document.createElement('article'); row.className = 'row';
+            var meta = document.createElement('div'); meta.className = 'meta';
+            if (!isNaN(d)) {
+              var t = document.createElement('time');
+              t.dateTime = d.toISOString();
+              t.textContent = d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+              meta.appendChild(t);
+            }
+            if (cat) {
+              var c = document.createElement('span');
+              c.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+              meta.appendChild(c);
+            }
+            var h = document.createElement('h3');
+            var a = document.createElement('a'); a.href = link; a.textContent = get('title');
+            h.appendChild(a);
+            var p = document.createElement('p'); p.textContent = get('description');
+            row.appendChild(meta); row.appendChild(h); row.appendChild(p);
+            box.appendChild(row);
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
+</body>
+</html>

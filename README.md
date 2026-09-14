@@ -8,13 +8,28 @@ The root landing page for `cursedshrine.com` — a hub that links to all project
 
 ## What It Links To
 
-| Project | URL |
-|---------|-----|
-| Portfolio | https://gaurav.cursedshrine.com |
-| Tic-Tac-Toe | https://tictactoe.cursedshrine.com |
-| Minecraft Clone | https://minecraft.cursedshrine.com |
-| Snakes & Ladders | https://snakeladder.cursedshrine.com |
-| Shows App | https://shows.cursedshrine.com |
+Design mirrors the blog (`bloging-app/src/styles/global.css`): old-novel paper
+palette, matte ink, hairline rows, 52rem column, marginalia doodles. Keep the
+CSS tokens at the top of `index.html` in sync if the blog palette changes.
+
+**Page order**
+
+| Section | Content |
+|---------|---------|
+| Hero (main attraction) | Portfolio → https://gaurav.cursedshrine.com |
+| Projects (centered heading, 2x2 cards, genre corner ribbon: Personal / Game) | Shows (`rel="nofollow"`), Tic-Tac-Toe, CursedCraft, Snakes & Ladders |
+
+Blog is linked from the header and footer (no blog section on the page).
+
+**API projects (ribbon: API, 2026-09-13)** — each card opens a doc page on this site:
+
+| Card | Doc page | GitHub |
+|------|----------|--------|
+| Mecca API | /projects/mecca-api/ | private repo (no link) |
+| User Auth API | /projects/user-auth-api/ | gauravrathore701/user-authentication-system |
+| Mail Service | /projects/mail-service/ | gauravrathore701/Mail-Service |
+
+Doc pages are generated: edit `.claude/tools/docs/build_docs.py`, re-run it. Shared styles in `public/docs.css`.
 
 ## Tech Stack
 

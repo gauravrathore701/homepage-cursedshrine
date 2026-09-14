@@ -35,17 +35,18 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Pure-CSS paper texture: edge fold creases, fibre grain, vignette. */
+  /* Same pure-CSS paper texture as the blog: fold creases, fibre grain, vignette. */
   body {
     position: relative;
     display: flex;
     flex-direction: column;
     min-height: 100dvh;
     background-image:
-      /* fold creases near the edges only — the middle crease is left out on purpose */
       linear-gradient(90deg,
         transparent 0 22%,
         rgba(90, 70, 40, 0.035) 22.2%, transparent 22.5%,
+        transparent 0 57%,
+        rgba(90, 70, 40, 0.03) 57.2%, transparent 57.5%,
         transparent 0 81%,
         rgba(90, 70, 40, 0.035) 81.2%, transparent 81.5%),
       linear-gradient(0deg,
@@ -117,8 +118,6 @@
     gap: 1rem;
   }
   a.card {
-    position: relative;
-    overflow: hidden;
     display: block;
     min-width: 0;
     text-align: center;
@@ -139,25 +138,6 @@
   a.card .label { display: block; font-size: 1.125rem; font-weight: 600; }
   a.card:hover .label { color: var(--color-accent); }
   a.card .blurb { margin-top: 0.25rem; font-size: 0.875rem; color: var(--color-ink-dim); }
-  /* Corner ribbon — project genre, pinned diagonally across the top-left corner. */
-  a.card .ribbon {
-    position: absolute;
-    top: 24px; left: -36px;
-    width: 140px;
-    transform: rotate(-45deg);
-    padding: 0.2rem 0;
-    text-align: center;
-    font-size: 0.625rem; font-weight: 700;
-    letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--color-bg);
-    background: var(--color-accent);
-    box-shadow: 0 1px 3px rgba(43, 39, 35, 0.25);
-    pointer-events: none;
-  }
-  a.card .ribbon.personal { background: var(--color-ink); }
-  a.card .ribbon.api { background: #2f6f8f; }
-  /* odd card count: last card sits centred at single-card width */
-  .grid > a.card:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 0.5rem); }
   a.card .url { margin-top: 0.5rem; font-size: 0.7rem; color: var(--color-muted); overflow-wrap: anywhere; }
 
   footer { margin-top: 4rem; border-top: 1px solid var(--color-line); }
@@ -167,34 +147,40 @@
     font-size: 0.875rem; color: var(--color-muted);
   }
   footer .links { display: flex; gap: 1.25rem; }
-  footer .credit {
-    flex-basis: 100%;
-    text-align: right;
-    font-size: 0.8rem;
-  }
-  footer .credit a { color: var(--color-accent); font-weight: 600; }
-  footer .credit a:hover { text-decoration: underline; }
-  footer .assist {
-    flex-basis: 100%;
-    margin-top: -0.4rem;
-    text-align: right;
-    font-size: 0.7rem;
-    font-style: italic;
-    color: var(--color-muted);
-    opacity: 0.85;
-  }
 
+  /* Marginalia doodles, same paths as the blog's sketches.js. Only where there is margin. */
+  .margin-sketches { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .margin-sketch {
+    position: absolute; top: var(--top);
+    width: var(--size); height: var(--size);
+    transform: rotate(var(--rot));
+    color: var(--color-ink); opacity: 0.14;
+    display: none;
+  }
+  .margin-sketch.left  { left:  calc(50% - 26rem - var(--size) - 2.5rem); }
+  .margin-sketch.right { right: calc(50% - 26rem - var(--size) - 2.5rem); }
+  @media (min-width: 1280px) { .margin-sketch { display: block; } }
 
   @media (max-width: 640px) {
     .hero { padding: 1.5rem 1.25rem; }
     .hero h1 { font-size: 1.6rem; }
     .nav-links { gap: 1rem; }
     .grid { grid-template-columns: minmax(0, 1fr); }
-    .grid > a.card:last-child:nth-child(odd) { width: 100%; }
   }
 </style>
 </head>
 <body>
+  <div class="margin-sketches" aria-hidden="true">
+    <svg class="margin-sketch left" style="--top:18vh; --rot:-9deg; --size:104px;" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 54c6-3 10-7 14-12"/><path d="M26 42c8-11 16-20 26-28-1 12-5 22-11 30-4 5-9 8-15 10"/><path d="M30 40c5-6 10-11 16-16"/><path d="M10 56l6-2"/>
+    </svg>
+    <svg class="margin-sketch right" style="--top:44vh; --rot:7deg; --size:92px;" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M26 24h12l3 22H23z"/><path d="M28 18c0-3 2-5 4-5s4 2 4 5"/><path d="M23 46h18"/><path d="M32 28v12"/><path d="M28 46l-2 6M36 46l2 6"/>
+    </svg>
+    <svg class="margin-sketch left" style="--top:70vh; --rot:12deg; --size:88px;" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M40 14c-11 3-18 12-17 22 1 11 11 18 22 16-9-3-15-11-15-20 0-8 4-15 10-18z"/><path d="M48 22l2-4 2 4 4 2-4 2-2 4-2-4-4-2z"/>
+    </svg>
+  </div>
 
   <header>
     <nav class="column">
@@ -216,58 +202,33 @@
       </div>
     </section>
 
-    <div class="section-head" id="projects">
+    <div class="section-head">
       <h2>Projects</h2>
     </div>
     <div class="grid">
       <a class="card" href="https://shows.cursedshrine.com" rel="nofollow">
-        <span class="ribbon personal">Personal</span>
         <span class="icon">🎞️</span>
         <span class="label">Shows</span>
         <div class="blurb">A personal media library that remembers where you stopped.</div>
         <div class="url">shows.cursedshrine.com</div>
       </a>
       <a class="card" href="https://tictactoe.cursedshrine.com">
-        <span class="ribbon">Game</span>
         <span class="icon">⚔️</span>
         <span class="label">Tic Tac Toe</span>
         <div class="blurb">The classic grid game, built in React.</div>
         <div class="url">tictactoe.cursedshrine.com</div>
       </a>
       <a class="card" href="https://minecraft.cursedshrine.com">
-        <span class="ribbon">Game</span>
         <span class="icon">🪦</span>
         <span class="label">CursedCraft</span>
         <div class="blurb">A voxel world in the browser. Dig, build, repeat.</div>
         <div class="url">minecraft.cursedshrine.com</div>
       </a>
       <a class="card" href="https://snakeladder.cursedshrine.com">
-        <span class="ribbon">Game</span>
         <span class="icon">🐍</span>
         <span class="label">Snakes &amp; Ladders</span>
         <div class="blurb">The board game, rolled in the browser.</div>
         <div class="url">snakeladder.cursedshrine.com</div>
-      </a>
-      <a class="card" href="/projects/mecca-api/">
-        <span class="ribbon api">API</span>
-        <span class="icon">🛰️</span>
-        <span class="label">Mecca API</span>
-        <div class="blurb">Spring Boot gateway in front of the Pi's backend services.</div>
-        <div class="url">api.cursedshrine.com &middot; docs</div>
-      </a>
-      <a class="card" href="/projects/user-auth-api/">
-        <span class="ribbon api">API</span>
-        <span class="icon">🔐</span>
-        <span class="label">User Auth API</span>
-        <div class="blurb">Rust service for accounts, JWT login and watch progress.</div>
-        <div class="url">docs &middot; GitHub</div>
-      </a>
-      <a class="card" href="/projects/mail-service/">
-        <span class="ribbon api">API</span>
-        <span class="icon">✉️</span>
-        <span class="label">Mail Service</span>
-        <div class="blurb">Rust backend that captures email subscribers.</div>
-        <div class="url">docs &middot; GitHub</div>
       </a>
     </div>
   </main>
@@ -280,12 +241,9 @@
         <a href="/blog/">Blog</a>
         <a href="/blog/rss.xml">RSS</a>
       </span>
-      <span class="credit">developed and managed by <a href="https://gaurav.cursedshrine.com">Gaurav Rathore</a></span>
-      <span class="assist">With the help of Claudy Rex (AI Assistant)</span>
     </div>
   </footer>
 
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-  <script src="/doodles.js?v=20260913c" defer></script>
 </body>
 </html>
